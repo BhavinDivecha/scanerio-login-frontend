@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Mail, Send, SendHorizonal } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -12,17 +12,30 @@ import { fadeIn, staggerContainer } from '@/utils/motion';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import axios from 'axios';
+import { postAudit } from '@/api/global-api';
+import { Loader } from '../elements/loader';
 
 interface FormData {
   email: string;
   otp: string;
 }
 
-const LoginForm: React.FC = () => {
+const LoginForm=()=>{
+  return(
+    <Suspense fallback={<div className='flex items-center justify-center'>Loading...</div>}
+     ><LoginFormModule />
+    </Suspense>
+  )
+}
+
+const LoginFormModule: React.FC = () => {
     const REDIRECT_URL=process.env.NEXT_PUBLIC_REDIRECT_URL
   const [showOtpField, setShowOtpField] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<FormData>();
+  const params = useSearchParams();
+  console.log(params.get('url'))
   const router = useRouter();  
 //   const jobId = useStore((state) => state.jobID);
   const { register, handleSubmit, formState: { errors }, setValue } = form;
@@ -50,6 +63,20 @@ const LoginForm: React.FC = () => {
     }
   };
 
+    const submitAudit=async(audit:string)=>{
+    setIsSubmitting(true);
+    await postAudit({
+      url:audit
+    }).then(res=>{
+      console.log(res)
+      // setTimeout(() => {
+        
+      //   router.push(`${REDIRECT_URL}/reports/${res?.data?.uuid}`);
+      // },5000)
+    }).catch(err=>{console.log(err)});
+
+  }
+
   const onSubmit = async (data: FormData) => {
     if (!data.email) {
       toast.error('Please enter your email');
@@ -69,8 +96,8 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await axios.post('/v1/user/auth/otp-login', {
-        email: data.email,
-        otp: data.otp
+        email: data.email.toLowerCase(),
+        otp: data.otp.toLowerCase(),
       });
 
       if (response.status === 200) {
@@ -78,11 +105,16 @@ const LoginForm: React.FC = () => {
         // if (jobId !== '') {
         //   router.push(`/report/${jobId}`);
         // } else {
-              if(window!==undefined){
-        sessionStorage.setItem('access', response.data.accessToken);
-        sessionStorage.setItem('refresh', response.data.refreshToken);
-      }
-          router.push(REDIRECT_URL!);
+          console.log(params.get('url'),params.get('url')!==undefined,params.get('url')!==null)
+      if(params.get('url')&&params.get('url')!==undefined&&params.get('url')!==null){
+        setIsSubmitting(true);
+      setTimeout(() => {
+        
+        submitAudit(String(params.get('url')))
+      },2000)
+    }else{
+      router.push(`${REDIRECT_URL}`);
+    }
         // }
       } else {
         toast.error(response.data.message || 'Login failed');
@@ -97,6 +129,14 @@ const LoginForm: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+ if(isSubmitting){
+  return (
+    <div className="flex justify-center items-center h-64">
+      <Loader message="Starting Audit" isLoading={isSubmitting} />
+    </div>
+  );
+}
 
   return (
     <motion.div 

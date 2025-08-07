@@ -6,6 +6,7 @@ import React from 'react'
 import {motion} from 'framer-motion';
 import { fadeIn, staggerContainer } from '@/utils/motion';
 import LoginForm from './login-form';
+import Image from 'next/image';
 
 const Login = () => {
   return (
@@ -25,7 +26,12 @@ const Login = () => {
         >
           <div className="flex items-center h-full px-20 bg-gray-900/10">
             <div>
-              <Link href={'/'} className="text-2xl font-bold text-white sm:text-3xl">Scanerio</Link>
+              <Link href={'/'} className="text-2xl font-bold text-white sm:text-3xl">
+              <div>
+              <Image src="/images/scanerio_transparent.png" alt="logo" width={200} height={200} />
+              {/* <h1>Scanerio</h1> */}
+              </div>
+              </Link>
               <p className="max-w-xl mt-3 text-gray-300">
                 Lorem ipsum dolor sit, amet consectetur adipisicing elit. In autem ipsa, nulla laboriosam dolores,
                 repellendus perferendis libero suscipit nam temporibus molestiae.

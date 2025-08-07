@@ -11,6 +11,13 @@ const nextConfig: NextConfig = {
             ? `${process.env.NEXT_PUBLIC_LOGIN_URL}/api`
             : `${process.env.NEXT_PUBLIC_LOGIN_URL}/api`) + "/:path*",
       },
+      {
+        source: "/v1/audit",
+        destination:
+          (process.env.NODE_ENV == "development"
+            ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+            : `${process.env.NEXT_PUBLIC_API_URL}/api`) + "/:path",
+      }
     ];
   },
 };
