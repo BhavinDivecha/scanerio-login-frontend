@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface LoaderProps {
@@ -28,6 +29,7 @@ export function Loader({ isLoading, message = "Loading..." }: LoaderProps) {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <div className="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
           </div>
+          {/* <Image src="/images/loader.gif" alt="logo" width={100} height={100} /> */}
         </div>
         <div className="text-center">
           <p className="font-medium text-foreground">{message}{dots}</p>

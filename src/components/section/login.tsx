@@ -32,9 +32,9 @@ const Login = () => {
               {/* <h1>Scanerio</h1> */}
               </div>
               </Link>
-              <p className="max-w-xl mt-3 text-gray-300">
-                Lorem ipsum dolor sit, amet consectetur adipisicing elit. In autem ipsa, nulla laboriosam dolores,
-                repellendus perferendis libero suscipit nam temporibus molestiae.
+              <p className="max-w-xl mt-1 text-gray-300">
+                Professional Website Audits In Minutes.
+                Get comprehensive performance reports with actionable insights to boost your website{'`'}s speed, security and user experience.
               </p>
             </div>
           </div>

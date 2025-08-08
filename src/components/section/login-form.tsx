@@ -77,6 +77,8 @@ const LoginFormModule: React.FC = () => {
 
   }
 
+  const url =params.get('url')
+
   const onSubmit = async (data: FormData) => {
     if (!data.email) {
       toast.error('Please enter your email');
@@ -94,10 +96,12 @@ const LoginFormModule: React.FC = () => {
     }
 
     setIsLoading(true);
+
     try {
       const response = await axios.post('/v1/user/auth/otp-login', {
         email: data.email.toLowerCase(),
         otp: data.otp.toLowerCase(),
+        ...(url&&url!==undefined&&url!==null&&{url:url}),
       });
 
       if (response.status === 200) {
@@ -108,10 +112,10 @@ const LoginFormModule: React.FC = () => {
           console.log(params.get('url'),params.get('url')!==undefined,params.get('url')!==null)
       if(params.get('url')&&params.get('url')!==undefined&&params.get('url')!==null){
         setIsSubmitting(true);
-      setTimeout(() => {
-        
-        submitAudit(String(params.get('url')))
-      },2000)
+        setTimeout(() => {
+          router.push(`${REDIRECT_URL}/reports/${response?.data?.submitUrl?.uuid}`);
+          
+        },2000)
     }else{
       router.push(`${REDIRECT_URL}`);
     }
