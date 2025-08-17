@@ -14,6 +14,9 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 import axios from 'axios';
 import { postAudit } from '@/api/global-api';
 import { Loader } from '../elements/loader';
+import { FaGithub } from 'react-icons/fa';
+import GoogleSignInBtn from '@/utils/google-sign-in-btn';
+import GithubSignIn from '@/utils/github-sign-in-btn';
 
 interface FormData {
   email: string;
@@ -77,7 +80,9 @@ const LoginFormModule: React.FC = () => {
 
   }
 
-  const url =params.get('url')
+  const url =params.get('url');
+  const subscriptionId=params.get('subscriptionId');
+  const subscriptionType=params.get('subscriptionType');
 
   const onSubmit = async (data: FormData) => {
     if (!data.email) {
@@ -101,6 +106,9 @@ const LoginFormModule: React.FC = () => {
       const response = await axios.post('/v1/user/auth/otp-login', {
         email: data.email.toLowerCase(),
         otp: data.otp.toLowerCase(),
+        ...(subscriptionId&&subscriptionId!==undefined&&subscriptionId!==null&&{subscriptionId:subscriptionId}),
+        ...(subscriptionType&&subscriptionType!==undefined&&subscriptionType!==null&&{subscriptionType:subscriptionType}),
+
         ...(url&&url!==undefined&&url!==null&&{url:url}),
       });
 
@@ -222,7 +230,7 @@ const LoginFormModule: React.FC = () => {
           <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-green-700 px-6 py-2.5 text-sm flex items-center justify-center font-medium tracking-wide text-white capitalize transition-colors duration-300 transform rounded-lg hover:bg-green-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#058296] px-6 py-2.5 text-sm flex items-center justify-center font-medium tracking-wide text-white capitalize transition-colors duration-300 transform rounded-lg hover:bg-green-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={!isLoading ? { scale: 1.02 } : {}}
             whileTap={!isLoading ? { scale: 0.98 } : {}}
           >
@@ -236,7 +244,23 @@ const LoginFormModule: React.FC = () => {
             {!isLoading&& <SendHorizonal className="ml-2 h-5 w-5" />}
            
           </motion.button>
+
         </motion.div>
+                <motion.div
+                variants={fadeIn('up', 'tween', 0.8, 1)}
+                className="flex items-center justify-between mt-4">
+            <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
+
+            <a href="#" className="text-xs text-gray-500 uppercase dark:text-gray-400 hover:underline">or Continue with</a>
+
+            <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
+        </motion.div>
+        <motion.div
+        variants={fadeIn('up', 'tween', 0.8, 1)}
+        className="grid grid-cols-2 mt-5 gap-5 dark:bg-gray-800">
+   <GoogleSignInBtn title='Google'/>
+    <GithubSignIn title='Github'/>
+</motion.div>
       </motion.form>
     </motion.div>
   ); 
