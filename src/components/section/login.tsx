@@ -11,33 +11,34 @@ import Image from 'next/image';
 const Login = () => {
   return (
     <div className='overflow-hidden'>
-    <div className='main'>
+    {/* <div className='main'>
         <div className='gradient'/>
-      </div>
+      </div> */}
      <div className="bg-transparent relative z-40 dark:bg-gray-900">
-      <div className="flex justify-center h-screen">
+      <div className="flex justify-center items-center h-screen rounded-xl">
         <div
-          className="hidden bg-cover lg:block lg:w-3/5 "
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1752867494500-9ea9322f58c9?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-              height: '100vh',
-          }}
+          className="hidden bg-cover lg:block lg:w-3/5 rounded-xl h-full"
+          
         >
-          <div className="flex items-center h-full px-20 bg-gray-900/10">
+           <div className="flex items-end  h-fit px-10 py-10 bg-gray-900/10">
             <div>
-              <Link href={'/'} className="text-2xl font-bold text-white sm:text-3xl">
+              <Link href={'/'} className=" font-bold text- text-white sm:text-3xl">
               <div>
-              <Image src="/images/scanerio_transparent.png" alt="logo" width={200} height={200} />
-              {/* <h1>Scanerio</h1> */}
+              {/* <Image src="/images/scanerio_transparent.png" alt="logo" width={200} height={200} /> */}
+              <h1 className='pb-2 text-sm text-black'>Scanerio</h1>
               </div>
               </Link>
-              <p className="max-w-xl mt-1 text-gray-300">
-                Professional Website Audits In Minutes.
+              <p className=" text-2xl font-bold mt-1 text-black ">
+                {/* Professional Website Audits In Minutes. */}
                 Get comprehensive performance reports with actionable insights to boost your website{'`'}s speed, security and user experience.
               </p>
             </div>
           </div>
+          <video src={'/scan.mp4'} autoPlay loop muted className='h-[80%] w-full object-cover
+          '>
+            {/* <source src="/scan.mp4" type="video/mp4" /> */}
+          </video>
+         
         </div>
 
         <motion.div variants={staggerContainer()} initial="hidden"
