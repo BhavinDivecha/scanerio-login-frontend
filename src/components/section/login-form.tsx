@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Mail, Send, SendHorizonal } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -12,11 +12,12 @@ import { fadeIn, staggerContainer } from '@/utils/motion';
 import Link from 'next/link';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import axios from 'axios';
-import { postAudit } from '@/api/global-api';
+import { postAudit } from '@/app/api/global-api';
 import { Loader } from '../elements/loader';
 import { FaGithub } from 'react-icons/fa';
 import GoogleSignInBtn from '@/utils/google-sign-in-btn';
 import GithubSignIn from '@/utils/github-sign-in-btn';
+import { getCookie } from '@/lib/cookies';
 
 interface FormData {
   email: string;
@@ -33,20 +34,83 @@ const LoginForm=()=>{
 
 const LoginFormModule: React.FC = () => {
     const REDIRECT_URL=process.env.NEXT_PUBLIC_REDIRECT_URL
+    const [_window,SetWindow]=useState<any>(null);
   const [showOtpField, setShowOtpField] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+const [loadingMessage,setLoadingMessage]=useState("Starting Audit");
   const form = useForm<FormData>();
   const params = useSearchParams();
   console.log(params.get('url'))
+  console.log(params.get('error'))
   const router = useRouter();  
+  useEffect(() => {
+    // const checkLoggedIn=async ()=>{
+    //   const tokenExist = getCookie('accessToken');
+    //   console.log('tokenExist',tokenExist);
+    // }
+    // checkLoggedIn();
+    if(window!=undefined){
+      SetWindow(window??null);
+    }
+  }, [])
+  
+  useEffect(() => {
+    if(params.get('error')){
+      toast.error(params.get('error'));
+      // params.delete();
+    }else if(params.get('session')){
+      setLoadingMessage('Verifying Github...');
+
+        setIsSubmitting(true);
+githubLogin(params.get('session'));
+    }
+  }, [params]);
+
+  const githubLogin=async(code:any)=>{
+        try {
+              const response = axios.post('/v1/user/auth/github/verify',{code});
+              toast.promise(response,{
+                loading:'Verifying Github...',
+                success:(data)=>{console.log(params.get('url'),params.get('url')!==undefined,params.get('url')!==null)
+      if(params.get('url')&&params.get('url')!==undefined&&params.get('url')!==null){
+        setLoadingMessage("Starting Audit");
+        setIsSubmitting(true);
+        setTimeout(() => {
+          router.push(`${REDIRECT_URL}/reports/${data?.data?.submitUrl?.uuid}`);
+          
+        },2000)
+    }else{
+      // _window.location=REDIRECT_URL;
+      router.push(`${REDIRECT_URL}`);
+    }
+                  return'Login successful!';
+                },
+                error:(errors)=>{
+                  setIsSubmitting(false);
+                  return 'Login Failed';
+                }
+              })
+  //              if (response.status === 200) {
+  //       toast.success('Login successful!');
+  //       // if (jobId !== '') {
+  //       //   router.push(`/report/${jobId}`);
+  //       // } else {
+          
+  // }
+        } catch (error:any) {
+          setIsSubmitting(false);
+        }
+
+  }
+  
 //   const jobId = useStore((state) => state.jobID);
   const { register, handleSubmit, formState: { errors }, setValue } = form;
 
   const handleSendOtp = async (email: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/v1/user/auth/send/otp', { email });
+      const response = await axios.post('/v1/user/auth/otp/send', { email });
       
       if (response.status === 200) {
         toast.success('OTP sent successfully!');
@@ -103,13 +167,15 @@ const LoginFormModule: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('/v1/user/auth/otp-login', {
+      const response = await axios.post('/v1/user/auth/otp/verify', {
         email: data.email.toLowerCase(),
         otp: data.otp.toLowerCase(),
         ...(subscriptionId&&subscriptionId!==undefined&&subscriptionId!==null&&{subscriptionId:subscriptionId}),
         ...(subscriptionType&&subscriptionType!==undefined&&subscriptionType!==null&&{subscriptionType:subscriptionType}),
 
         ...(url&&url!==undefined&&url!==null&&{url:url}),
+      },{
+        withCredentials:true
       });
 
       if (response.status === 200) {
@@ -119,12 +185,14 @@ const LoginFormModule: React.FC = () => {
         // } else {
           console.log(params.get('url'),params.get('url')!==undefined,params.get('url')!==null)
       if(params.get('url')&&params.get('url')!==undefined&&params.get('url')!==null){
+        setLoadingMessage("Starting Audit");
         setIsSubmitting(true);
         setTimeout(() => {
           router.push(`${REDIRECT_URL}/reports/${response?.data?.submitUrl?.uuid}`);
           
         },2000)
     }else{
+      // _window.location=REDIRECT_URL;
       router.push(`${REDIRECT_URL}`);
     }
         // }
@@ -145,7 +213,7 @@ const LoginFormModule: React.FC = () => {
  if(isSubmitting){
   return (
     <div className="flex justify-center items-center h-64">
-      <Loader message="Starting Audit" isLoading={isSubmitting} />
+      <Loader message={loadingMessage} isLoading={isSubmitting} />
     </div>
   );
 }

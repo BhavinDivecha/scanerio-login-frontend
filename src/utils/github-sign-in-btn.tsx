@@ -1,3 +1,4 @@
+import { signIn } from 'next-auth/react';
 import React from 'react'
 import { FaGithub } from 'react-icons/fa'
 
@@ -5,11 +6,31 @@ interface GithubBtn{
     title:string;
 }
 const GithubSignIn:React.FC<GithubBtn> = ({title}) => {
-      const REDIRECT_URI = process.env.NODE_ENV === 'production' 
-? `${process.env.REDIRECT_URL}`
-: 'http://localhost:3001/';
+//       const REDIRECT_URI = process.env.NODE_ENV === 'production' 
+// ? `${process.env.GITHUB_REDIRECT_URI}`
+// : 'http://localhost:3000';
   const handleGithubLogin = () => {
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=read:user`;
+    const params = new URLSearchParams({
+    client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID!,
+    redirect_uri: process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI!,
+    // state,
+    scope: "read:user user:email",
+    // PKCE (S256)
+    // code_challenge: challenge,
+    // code_challenge_method: "S256",
+    // optional: "allow_signup": "false"
+  });
+  console.log({
+    client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID!,
+    redirect_uri: process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI!,
+    // state,
+    scope: "read:user user:email",
+    // PKCE (S256)
+    // code_challenge: challenge,
+    // code_challenge_method: "S256",
+    // optional: "allow_signup": "false"
+  })
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
   window.location.href = githubAuthUrl;
 };
   return (

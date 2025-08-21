@@ -1,14 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect } from 'react'
 // import LoginForm from './LoginForm'
 import {motion} from 'framer-motion';
 import { fadeIn, staggerContainer } from '@/utils/motion';
 import LoginForm from './login-form';
 import Image from 'next/image';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const Login = () => {
+const Login = () => {    
+
   return (
     <div className='overflow-hidden'>
     {/* <div className='main'>
