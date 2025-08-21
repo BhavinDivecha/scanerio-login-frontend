@@ -6,10 +6,6 @@ import React, { useEffect } from 'react'
 import {motion} from 'framer-motion';
 import { fadeIn, staggerContainer } from '@/utils/motion';
 import LoginForm from './login-form';
-import Image from 'next/image';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
 const Login = () => {    
 
   return (
