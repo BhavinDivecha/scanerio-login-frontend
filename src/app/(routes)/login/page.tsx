@@ -80,13 +80,15 @@ function OtpInput({ value, onChange, disabled }: { value: string; onChange: (v: 
     onChange(next);
     if (ch && inputs.current[idx + 1]) inputs.current[idx + 1]?.focus();
   };
+  const setInputRef = (i: number): React.RefCallback<HTMLInputElement> =>
+  (el) => { inputs.current[i] = el; };
 
   return (
     <div className="flex gap-2" role="group" aria-label="Enter 6-digit verification code">
       {Array.from({ length: 6 }).map((_, i) => (
         <input
           key={i}
-          ref={el => (inputs.current[i] = el)}
+          ref={setInputRef(i)}
           inputMode="numeric"
           aria-label={`Digit ${i + 1}`}
           className="w-12 h-12 rounded-2xl text-center text-xl font-semibold bg-transparent border outline-none focus:ring-2"
