@@ -1,4 +1,5 @@
 "use client"
+import LoginForm from "@/components/section/login-form";
 import * as React from "react";
 
 // Brand palette (from instructions)
@@ -220,111 +221,6 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: BRAND.surface, color: BRAND.text }}>
-      <div className="w-full max-w-xl">
-        {/* Card */}
-        <div className="rounded-3xl shadow-xl overflow-hidden border" style={{ background: BRAND.surfaceMuted, borderColor: BRAND.surfaceMuted }}>
-          {/* Header */}
-          <div className="p-6 flex items-center justify-between border-b" style={{ borderColor: BRAND.surface }}>
-            <ScanerioLogo />
-            <span className="text-xs" style={{ color: BRAND.textMuted }}>
-              Secure sign‑in • Email + OAuth
-            </span>
-          </div>
-
-          {/* Body */}
-          <div className="p-6 grid gap-6">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-              <p className="text-sm mt-1" style={{ color: BRAND.textMuted }}>
-                Sign in using a one‑time code or your social account.
-              </p>
-            </div>
-
-            {/* Social providers */}
-            <div className="grid gap-3 md:grid-cols-3">
-              <SocialButton provider="google" label="Google" href="/api/auth/google" icon={<Icon.Google />} />
-              <SocialButton provider="github" label="GitHub" href="/api/auth/github" icon={<Icon.GitHub />} />
-              <SocialButton provider="linkedin" label="LinkedIn" href="/api/auth/linkedin" icon={<Icon.LinkedIn />} />
-            </div>
-
-            <div className="flex items-center gap-4" aria-hidden="true">
-              <div className="h-px flex-1" style={{ background: BRAND.surface }} />
-              <span className="text-xs" style={{ color: BRAND.textMuted }}>or</span>
-              <div className="h-px flex-1" style={{ background: BRAND.surface }} />
-            </div>
-
-            {/* Email / OTP */}
-            {step === "email" ? (
-              <div className="grid gap-3">
-                <label htmlFor="email" className="text-sm" style={{ color: BRAND.text }}>
-                  Work email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  placeholder="name@company.com"
-                  className="w-full rounded-2xl bg-transparent border px-4 py-3 outline-none focus:ring-2"
-                  style={{ borderColor: BRAND.textMuted, color: BRAND.text }}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <div className="flex gap-3">
-                  <Button onClick={sendCode} disabled={busy}>
-                    Send one‑time code
-                  </Button>
-                  <Button onClick={() => { setEmail(""); setStep("email"); setMessage(null); }} variant="muted">
-                    Reset
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <form className="grid gap-3" onSubmit={submitOtp} aria-label="Enter and submit your verification code">
-                <div className="grid gap-2">
-                  <label className="text-sm">Verification code sent to <span className="font-medium" style={{ color: BRAND.accent }}>{email}</span></label>
-                  <OtpInput value={otp} onChange={setOtp} disabled={busy} />
-                </div>
-                <div className="flex gap-3">
-                  <Button type="submit" disabled={busy}>Verify & Sign in</Button>
-                  <Button onClick={() => { setStep("email"); setOtp(""); }} variant="outline">Back</Button>
-                </div>
-              </form>
-            )}
-
-            {/* Messages (aria-live for SRs) */}
-            <div aria-live="polite" className="min-h-[24px] text-sm">
-              {message && (
-                <div
-                  role="status"
-                  className="px-3 py-2 rounded-xl"
-                  style={{
-                    background: message.kind === "error" ? "#2A1214" : message.kind === "success" ? "#0E2A1E" : BRAND.surface,
-                    color: message.kind === "error" ? BRAND.bad : message.kind === "success" ? BRAND.good : BRAND.textMuted,
-                    border: `1px solid ${BRAND.surface}`,
-                  }}
-                >
-                  {message.text}
-                </div>
-              )}
-            </div>
-
-            {/* Footer / Help */}
-            <p className="text-xs" style={{ color: BRAND.textMuted }}>
-              By continuing, you agree to {BRAND.name}&apos;s Terms and Privacy Policy.
-            </p>
-          </div>
-        </div>
-
-        {/* Subtle brand footer */}
-        <div className="flex items-center justify-center gap-2 mt-4 text-xs" style={{ color: BRAND.textMuted }}>
-          <span>Protected by OTP • Google • GitHub • LinkedIn</span>
-          <span aria-hidden>•</span>
-          <span>© {new Date().getFullYear()} {BRAND.name}</span>
-        </div>
-      </div>
-    </div>
+     <LoginForm />
   );
 }

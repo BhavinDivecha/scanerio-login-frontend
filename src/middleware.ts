@@ -46,9 +46,5 @@ export function middleware(req: NextRequest) {
 
 // Only run middleware on your protected areas to keep things simple/fast
 export const config = {
-  matcher: [
-    // Protect these sections (customize)
-    "/:path*",
-    // Let everything else through (including /api, /api/oauth, assets, etc.)
-  ],
+  matcher: ['/((?!api|proxy|_next/static|_next/image|favicon.ico|refresh).*):path*',], // protect these routes
 };
