@@ -44,7 +44,7 @@ export default function LogoutClient() {
         try { await fetch("/api/auth/logout", { method: "POST" }); } catch {}
         // Small delay so users see feedback, then go to login
         setTimeout(() => {
-          if (!cancelled) router.replace("/");
+          // if (!cancelled) router.replace("/");
         }, 700);
       }
     };
