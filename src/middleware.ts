@@ -24,6 +24,11 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const session = req.cookies.get("refreshToken")?.value ?? null;
 
+  // Allow logout paths to proceed even if a session exists
+  if (url.pathname === "/refresh" ||url.pathname === "/logout" || url.pathname.startsWith("/api/auth/logout")) {
+    return NextResponse.next();
+  }
+
   // console.log('session',session)
   // 1) Block protected paths if no session cookie
 //   if (!isPublic(req)) {

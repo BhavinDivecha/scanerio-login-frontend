@@ -319,14 +319,14 @@ githubLogin(params.get('session'));
                 className="flex items-center justify-between mt-4">
             <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
 
-            <a href="#" className="text-xs text-gray-500 uppercase dark:text-gray-400 hover:underline">or Continue with</a>
+            <p className="text-xs text-gray-500 uppercase dark:text-gray-400">or Continue with</p>
 
             <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
         </motion.div>
         <motion.div
         variants={fadeIn('up', 'tween', 0.8, 1)}
-        className="grid grid-cols-2 mt-5 gap-5 dark:bg-gray-800">
-   <GoogleSignInBtn title='Google'/>
+        className="grid grid-cols-1 mt-5 gap-5 dark:bg-gray-800">
+   {/* <GoogleSignInBtn title='Google'/> */}
     <GithubSignIn title='Github'/>
 </motion.div>
       </motion.form>

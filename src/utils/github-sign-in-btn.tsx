@@ -34,7 +34,7 @@ const GithubSignIn:React.FC<GithubBtn> = ({title}) => {
   window.location.href = githubAuthUrl;
 };
   return (
-    <button type="button" onClick={() => handleGithubLogin()} className="px-4 font-semibold py-2 bg-black border flex gap-2 items-center w-full justify-center border-slate-200 dark:border-slate-700 rounded-lg text-white dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500  dark:hover:text-slate-300 hover:shadow transition duration-150">
+    <button type="button" onClick={() => handleGithubLogin()} className="px-4 font-semibold py-2 bg-black border flex items-center w-full justify-center border-slate-200 dark:border-slate-700 rounded-lg text-white dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500  dark:hover:text-slate-300 hover:shadow transition duration-150">
         {/* <img className="w-6 h-6" src="https://www.svgrepo.com/show/475656/google-color.svg" loading="lazy" alt="google logo"/> */}
         <FaGithub />
         <span>{title}</span>
