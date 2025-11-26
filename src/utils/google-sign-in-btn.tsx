@@ -4,7 +4,7 @@ import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { postAudit } from '@/app/api/global-api';
 import axios from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 interface GoogleBtnProps {
@@ -15,35 +15,7 @@ const GoogleSignInBtn: React.FC<GoogleBtnProps> = ({ title }) => {
   const router = useRouter();
   const params = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const googleButtonRef = useRef<HTMLDivElement | null>(null);
-  const [googleRenderKey, setGoogleRenderKey] = useState(0);
-  const [googleReady, setGoogleReady] = useState(false);
   const redirectBase = process.env.NEXT_PUBLIC_REDIRECT_URL ?? '/';
-  useEffect(() => {
-    const container = googleButtonRef.current;
-    if (!container) return;
-
-    const checkReady = () => {
-      const btn = container.querySelector('div[role="button"]');
-      if (btn) {
-        setGoogleReady(true);
-        return true;
-      }
-      return false;
-    };
-
-    if (checkReady()) return;
-
-    const observer = new MutationObserver(() => {
-      if (checkReady()) {
-        observer.disconnect();
-      }
-    });
-
-    observer.observe(container, { childList: true, subtree: true });
-
-    return () => observer.disconnect();
-  }, [googleRenderKey]);
 
   const handleRedirect = useCallback(
     (submitUuid?: string | null) => {
@@ -97,41 +69,17 @@ const GoogleSignInBtn: React.FC<GoogleBtnProps> = ({ title }) => {
       toast.error(message);
     } finally {
       setIsLoading(false);
-      setGoogleReady(false);
-      setGoogleRenderKey((key) => key + 1);
     }
   };
 
   const handleError = () => {
     setIsLoading(false);
-    setGoogleReady(false);
-    setGoogleRenderKey((key) => key + 1);
     toast.error('Google login failed. Please try again.');
   };
 
-  const triggerGoogleLogin = () => {
-    if (isLoading) return;
-    const googleBtn = googleButtonRef.current?.querySelector(
-      'div[role="button"]'
-    ) as HTMLElement | undefined;
-    if (googleBtn && googleReady) {
-      googleBtn.click();
-    } else {
-      toast.error('Google auth is not ready yet. Please try again in a moment.');
-      setGoogleReady(false);
-      setGoogleRenderKey((key) => key + 1);
-    }
-  };
-
   return (
-    <div className="relative w-full">
-      <button
-        type="button"
-        onClick={triggerGoogleLogin}
-        disabled={isLoading}
-        className="relative flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
-        aria-label={`Continue with ${title}`}
-      >
+    <div className="group relative w-full">
+      <div className="pointer-events-none relative flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition duration-200 group-hover:-translate-y-0.5 group-hover:border-slate-300 group-hover:shadow-md dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -141,25 +89,22 @@ const GoogleSignInBtn: React.FC<GoogleBtnProps> = ({ title }) => {
           />
         </span>
         <span>Continue with {title}</span>
-        {isLoading && (
-          <span className="absolute right-4 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-        )}
-      </button>
+      </div>
 
       <div
-        ref={googleButtonRef}
-        className="pointer-events-none absolute inset-0 -z-10 opacity-0"
-        aria-hidden="true"
+        className="absolute inset-0"
+        style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
       >
-        <GoogleLogin
-          key={googleRenderKey}
-          onSuccess={handleSuccess}
-          onError={handleError}
-          shape="pill"
-          theme="outline"
-          text="continue_with"
-          width="100%"
-        />
+        <div className="h-full w-full opacity-0" aria-hidden="true">
+          <GoogleLogin
+            onSuccess={handleSuccess}
+            onError={handleError}
+            shape="pill"
+            theme="outline"
+            text="continue_with"
+            width="100%"
+          />
+        </div>
       </div>
 
       {isLoading && (
