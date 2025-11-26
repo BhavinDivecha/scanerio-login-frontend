@@ -39,6 +39,7 @@ const LoginFormModule: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 const [loadingMessage,setLoadingMessage]=useState("Starting Audit");
+const [otpHint,setOtpHint]=useState('');
   const form = useForm<FormData>();
   const params = useSearchParams();
   console.log(params.get('url'))
@@ -106,6 +107,7 @@ githubLogin(params.get('session'));
   
 //   const jobId = useStore((state) => state.jobID);
   const { register, handleSubmit, formState: { errors }, setValue } = form;
+  const emailValue = form.watch('email');
 
   const handleSendOtp = async (email: string) => {
     setIsLoading(true);
@@ -115,6 +117,7 @@ githubLogin(params.get('session'));
       if (response.status === 200) {
         toast.success('OTP sent successfully!');
       setShowOtpField(true);
+      setOtpHint(`We sent a 6-digit code to ${email.toLowerCase()}.`);
   
       } else {
         toast.error(response.data.message || 'Failed to send OTP');
@@ -128,6 +131,20 @@ githubLogin(params.get('session'));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResendOtp = async () => {
+    if (!emailValue) {
+      toast.error('Please enter your email before requesting a new code.');
+      return;
+    }
+    await handleSendOtp(emailValue.toLowerCase());
+  };
+
+  const handleEditEmail = () => {
+    setShowOtpField(false);
+    setValue('otp', '');
+    setOtpHint('');
   };
 
     const submitAudit=async(audit:string)=>{
@@ -231,18 +248,42 @@ githubLogin(params.get('session'));
         variants={fadeIn('up', 'tween', 0.2, 1)}
       >
         <motion.div 
-          className='relative group flex items-center text-gray-700 bg-transparent border-2 rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-800 focus:border-green-400 dark:focus:border-green-300 focus:ring-green-300 focus:outline-none focus:ring focus:ring-opacity-40'
           variants={fadeIn('up', 'tween', 0.4, 1)}
+          className="mt-4"
         >
-          <Mail className="relative left-3 text-gray-400" />
-          <input
-            type="email"
-            id="email"
-            {...register("email", { required: true })}
-            placeholder="Enter your email"
-            className="w-full px-4 py-2 ml-1 focus:outline-none group-focus:ring-2 group-focus:ring-green-400"
-            disabled={showOtpField || isLoading}
-          />
+          <div className="rounded-2xl border border-slate-200/70 bg-white/50 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/60">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                  Step 1
+                </p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">
+                  Send verification code
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  We'll email a magic code to{' '}
+                  <span className="font-medium text-slate-700 dark:text-slate-200">
+                    {emailValue || 'your inbox'}
+                  </span>
+                  .
+                </p>
+              </div>
+              <span className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-semibold ${showOtpField ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-200' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+                {showOtpField ? 'Code sent' : 'Required'}
+              </span>
+            </div>
+            <div className="relative mt-4 flex items-center rounded-xl border border-slate-200 bg-white/80 px-2 py-1 focus-within:ring-2 focus-within:ring-emerald-300 dark:border-slate-600 dark:bg-slate-900">
+              <Mail className="ml-2 text-slate-400" />
+              <input
+                type="email"
+                id="email"
+                {...register("email", { required: true })}
+                placeholder="Enter your work email"
+                className="w-full bg-transparent px-3 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-white"
+                disabled={showOtpField || isLoading}
+              />
+            </div>
+          </div>
         </motion.div>
         {errors.email && (
           <motion.span 
@@ -258,36 +299,78 @@ githubLogin(params.get('session'));
         {showOtpField && (
           <motion.div
             className="mt-4"
-            // variants={fadeIn('up', 'tween', 0.6, 1)}
             initial="hidden"
             animate="show"
           >
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Enter OTP
-            </label>
-            <InputOTP 
-              maxLength={6} 
-              {...register('otp', { required: true, minLength: 6 })}
-              onChange={(value) => setValue('otp', value)}
-              disabled={isLoading}
-              className='border-gray-400 '
-            >
-              <InputOTPGroup className='border-gray-300 gap-2 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border'>
-                {[...Array(6)].map((_, index) => (
-                  <InputOTPSlot key={index} index={index} className='border-gray-400' />
-                ))}
-              </InputOTPGroup>
-            </InputOTP>
-            {errors.otp && (
-              <motion.span 
-                className="text-red-500 text-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                Please enter a valid 6-digit OTP
-              </motion.span>
-            )}
+            <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/60">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                    Step 2
+                  </p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-white">
+                    Verify the code
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Enter the 6-digit code sent to your email to continue.
+                  </p>
+                  {otpHint && (
+                    <p className="mt-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
+                      {otpHint}
+                    </p>
+                  )}
+                </div>
+                <span className="inline-flex h-7 items-center rounded-full bg-blue-50 px-3 text-xs font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-200">
+                  Secure login
+                </span>
+              </div>
+
+              <div className="mt-4">
+                <InputOTP 
+                  maxLength={6} 
+                  {...register('otp', { required: true, minLength: 6 })}
+                  onChange={(value) => setValue('otp', value)}
+                  disabled={isLoading}
+                  className='border-none'
+                >
+                  <InputOTPGroup className='gap-3 *:data-[slot=input-otp-slot]:rounded-2xl *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:border-slate-200 *:data-[slot=input-otp-slot]:bg-white/80 *:data-[slot=input-otp-slot]:text-lg *:data-[slot=input-otp-slot]:font-semibold dark:*:data-[slot=input-otp-slot]:border-slate-600 dark:*:data-[slot=input-otp-slot]:bg-slate-900/70'>
+                    {[...Array(6)].map((_, index) => (
+                      <InputOTPSlot key={index} index={index} className='h-12 w-12 text-center text-slate-900 dark:text-white' />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              {errors.otp && (
+                <motion.span 
+                  className="text-red-500 text-xs"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  Please enter a valid 6-digit OTP
+                </motion.span>
+              )}
+
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={isLoading}
+                  className="rounded-full border border-slate-200 px-4 py-1 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-500"
+                >
+                  Resend code
+                </button>
+                <span className="hidden text-slate-300 sm:inline">•</span>
+                <button
+                  type="button"
+                  onClick={handleEditEmail}
+                  className="font-semibold text-slate-600 underline-offset-4 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                >
+                  Change email
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -326,7 +409,7 @@ githubLogin(params.get('session'));
         <motion.div
         variants={fadeIn('up', 'tween', 0.8, 1)}
         className="grid grid-cols-1 mt-5 gap-5 dark:bg-gray-800">
-   {/* <GoogleSignInBtn title='Google'/> */}
+   <GoogleSignInBtn title='Google'/>
     <GithubSignIn title='Github'/>
 </motion.div>
       </motion.form>

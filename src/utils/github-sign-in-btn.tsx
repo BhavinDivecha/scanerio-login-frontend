@@ -1,45 +1,43 @@
-import { signIn } from 'next-auth/react';
-import React from 'react'
-import { FaGithub } from 'react-icons/fa'
+import React, { useCallback, useMemo, useState } from 'react';
+import { FaGithub } from 'react-icons/fa';
 
-interface GithubBtn{
-    title:string;
+interface GithubBtn {
+  title: string;
 }
-const GithubSignIn:React.FC<GithubBtn> = ({title}) => {
-//       const REDIRECT_URI = process.env.NODE_ENV === 'production' 
-// ? `${process.env.GITHUB_REDIRECT_URI}`
-// : 'http://localhost:3000';
-  const handleGithubLogin = () => {
-    const params = new URLSearchParams({
-    client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID!,
-    redirect_uri: process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI!,
-    // state,
-    scope: "read:user user:email",
-    // PKCE (S256)
-    // code_challenge: challenge,
-    // code_challenge_method: "S256",
-    // optional: "allow_signup": "false"
-  });
-  console.log({
-    client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID!,
-    redirect_uri: process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI!,
-    // state,
-    scope: "read:user user:email",
-    // PKCE (S256)
-    // code_challenge: challenge,
-    // code_challenge_method: "S256",
-    // optional: "allow_signup": "false"
-  })
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
-  window.location.href = githubAuthUrl;
-};
+
+const GithubSignIn: React.FC<GithubBtn> = ({ title }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const githubParams = useMemo(() => {
+    return new URLSearchParams({
+      client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID!,
+      redirect_uri: process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI!,
+      scope: 'read:user user:email',
+    });
+  }, []);
+
+  const handleGithubLogin = useCallback(() => {
+    setIsLoading(true);
+    window.location.href = `https://github.com/login/oauth/authorize?${githubParams.toString()}`;
+  }, [githubParams]);
+
   return (
-    <button type="button" onClick={() => handleGithubLogin()} className="px-4 font-semibold py-2 bg-black border flex items-center w-full justify-center border-slate-200 dark:border-slate-700 rounded-lg text-white dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500  dark:hover:text-slate-300 hover:shadow transition duration-150">
-        {/* <img className="w-6 h-6" src="https://www.svgrepo.com/show/475656/google-color.svg" loading="lazy" alt="google logo"/> */}
-        <FaGithub />
-        <span>{title}</span>
+    <button
+      type="button"
+      onClick={handleGithubLogin}
+      disabled={isLoading}
+      className="relative flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
+      aria-label={`Continue with ${title}`}
+    >
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-black text-white dark:bg-white dark:text-black">
+        <FaGithub className="h-5 w-5" />
+      </span>
+      <span>Continue with {title}</span>
+      {isLoading && (
+        <span className="absolute right-4 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      )}
     </button>
-  )
-}
+  );
+};
 
 export default GithubSignIn
