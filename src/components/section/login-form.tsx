@@ -261,7 +261,7 @@ githubLogin(params.get('session'));
                   Send verification code
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  We'll email a magic code to{' '}
+                  We&apos;ll email a magic code to{' '}
                   <span className="font-medium text-slate-700 dark:text-slate-200">
                     {emailValue || 'your inbox'}
                   </span>
