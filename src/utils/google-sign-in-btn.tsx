@@ -4,7 +4,7 @@ import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { postAudit } from '@/app/api/global-api';
 import axios from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 interface GoogleBtnProps {
@@ -16,7 +16,34 @@ const GoogleSignInBtn: React.FC<GoogleBtnProps> = ({ title }) => {
   const params = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const [googleRenderKey, setGoogleRenderKey] = useState(0);
+  const [googleReady, setGoogleReady] = useState(false);
   const redirectBase = process.env.NEXT_PUBLIC_REDIRECT_URL ?? '/';
+  useEffect(() => {
+    const container = googleButtonRef.current;
+    if (!container) return;
+
+    const checkReady = () => {
+      const btn = container.querySelector('div[role="button"]');
+      if (btn) {
+        setGoogleReady(true);
+        return true;
+      }
+      return false;
+    };
+
+    if (checkReady()) return;
+
+    const observer = new MutationObserver(() => {
+      if (checkReady()) {
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(container, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [googleRenderKey]);
 
   const handleRedirect = useCallback(
     (submitUuid?: string | null) => {
@@ -70,11 +97,15 @@ const GoogleSignInBtn: React.FC<GoogleBtnProps> = ({ title }) => {
       toast.error(message);
     } finally {
       setIsLoading(false);
+      setGoogleReady(false);
+      setGoogleRenderKey((key) => key + 1);
     }
   };
 
   const handleError = () => {
     setIsLoading(false);
+    setGoogleReady(false);
+    setGoogleRenderKey((key) => key + 1);
     toast.error('Google login failed. Please try again.');
   };
 
@@ -83,10 +114,12 @@ const GoogleSignInBtn: React.FC<GoogleBtnProps> = ({ title }) => {
     const googleBtn = googleButtonRef.current?.querySelector(
       'div[role="button"]'
     ) as HTMLElement | undefined;
-    if (googleBtn) {
+    if (googleBtn && googleReady) {
       googleBtn.click();
     } else {
       toast.error('Google auth is not ready yet. Please try again in a moment.');
+      setGoogleReady(false);
+      setGoogleRenderKey((key) => key + 1);
     }
   };
 
@@ -119,6 +152,7 @@ const GoogleSignInBtn: React.FC<GoogleBtnProps> = ({ title }) => {
         aria-hidden="true"
       >
         <GoogleLogin
+          key={googleRenderKey}
           onSuccess={handleSuccess}
           onError={handleError}
           shape="pill"
