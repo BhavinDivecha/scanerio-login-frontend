@@ -1,124 +1,117 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Mail, Send, SendHorizonal } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
-import { fadeIn, staggerContainer } from '@/utils/motion';
-// import { useStore } from '@/store/store';
-import Link from 'next/link';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import axios from 'axios';
-import { postAudit } from '@/app/api/global-api';
-import { Loader } from '../elements/loader';
-import { FaGithub } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, SendHorizonal } from 'lucide-react';
+
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import GoogleSignInBtn from '@/utils/google-sign-in-btn';
 import GithubSignIn from '@/utils/github-sign-in-btn';
-import { getCookie } from '@/lib/cookies';
+import { Loader } from '@/components/elements/loader';
+import { postAudit } from '@/app/api/global-api';
 
 interface FormData {
   email: string;
   otp: string;
 }
 
-const LoginForm=()=>{
-  return(
-    <Suspense fallback={<div className='flex items-center justify-center'>Loading...</div>}
-     ><LoginFormModule />
-    </Suspense>
-  )
-}
+const stepCardVariants = {
+  initial: { opacity: 0, y: 16, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -16, scale: 0.98 },
+};
 
-const LoginFormModule: React.FC = () => {
-    const REDIRECT_URL=process.env.NEXT_PUBLIC_REDIRECT_URL
-    const [_window,SetWindow]=useState<any>(null);
-  const [showOtpField, setShowOtpField] = useState(false);
+const InnerLoginForm: React.FC = () => {
+  const REDIRECT_URL = process.env.NEXT_PUBLIC_REDIRECT_URL;
+  const [step, setStep] = useState<1 | 2>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-const [loadingMessage,setLoadingMessage]=useState("Starting Audit");
-const [otpHint,setOtpHint]=useState('');
-  const form = useForm<FormData>();
-  const params = useSearchParams();
-  console.log(params.get('url'))
-  console.log(params.get('error'))
-  const router = useRouter();  
-  useEffect(() => {
-    // const checkLoggedIn=async ()=>{
-    //   const tokenExist = getCookie('accessToken');
-    //   console.log('tokenExist',tokenExist);
-    // }
-    // checkLoggedIn();
-    if(window!=undefined){
-      SetWindow(window??null);
-    }
-  }, [])
-  
-  useEffect(() => {
-    if(params.get('error')){
-      toast.error(params.get('error'));
-      // params.delete();
-    }else if(params.get('session')){
-      setLoadingMessage('Verifying Github...');
+  const [loadingMessage, setLoadingMessage] = useState('Starting Audit');
+  const [otpHint, setOtpHint] = useState('');
 
-        setIsSubmitting(true);
-githubLogin(params.get('session'));
+  const form = useForm<FormData>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = form;
+
+  const emailValue = watch('email');
+  const params = useSearchParams();
+  const router = useRouter();
+
+  const url = params.get('url');
+  const subscriptionId = params.get('subscriptionId');
+  const subscriptionType = params.get('subscriptionType');
+
+  /* ---------- GitHub callback / URL error handling ---------- */
+  useEffect(() => {
+    const error = params.get('error');
+    const sessionCode = params.get('session');
+
+    if (error) {
+      toast.error(error);
+    } else if (sessionCode) {
+      setLoadingMessage('Verifying Github...');
+      setIsSubmitting(true);
+      githubLogin(sessionCode);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
-  const githubLogin=async(code:any)=>{
-        try {
-              const response = axios.post('/v1/user/auth/github/verify',{code});
-              toast.promise(response,{
-                loading:'Verifying Github...',
-                success:(data)=>{console.log(params.get('url'),params.get('url')!==undefined,params.get('url')!==null)
-      if(params.get('url')&&params.get('url')!==undefined&&params.get('url')!==null){
-        setLoadingMessage("Starting Audit");
-        setIsSubmitting(true);
-        setTimeout(() => {
-          router.push(`${REDIRECT_URL}/reports/${data?.data?.submitUrl?.uuid}`);
-          
-        },2000)
-    }else{
-      // _window.location=REDIRECT_URL;
-      router.push(`${REDIRECT_URL}`);
-    }
-                  return'Login successful!';
-                },
-                error:(errors)=>{
-                  setIsSubmitting(false);
-                  return 'Login Failed';
-                }
-              })
-  //              if (response.status === 200) {
-  //       toast.success('Login successful!');
-  //       // if (jobId !== '') {
-  //       //   router.push(`/report/${jobId}`);
-  //       // } else {
-          
-  // }
-        } catch (error:any) {
-          setIsSubmitting(false);
-        }
+  const githubLogin = async (code: string) => {
+    try {
+      const responsePromise = axios.post(
+        '/v1/user/auth/github/verify',
+        { code },
+        { withCredentials: true }
+      );
 
-  }
-  
-//   const jobId = useStore((state) => state.jobID);
-  const { register, handleSubmit, formState: { errors }, setValue } = form;
-  const emailValue = form.watch('email');
+      toast.promise(responsePromise, {
+        loading: 'Verifying Github...',
+        success: (res) => {
+          const data = (res as any)?.data;
+          const hasUrl = !!params.get('url');
+
+          if (hasUrl && data?.submitUrl?.uuid) {
+            setLoadingMessage('Starting Audit');
+            setIsSubmitting(true);
+            setTimeout(() => {
+              router.push(`${REDIRECT_URL}/reports/${data.submitUrl.uuid}`);
+            }, 1500);
+          } else {
+            router.push(`${REDIRECT_URL}`);
+          }
+
+          return 'Login successful!';
+        },
+        error: () => {
+          setIsSubmitting(false);
+          return 'Login failed';
+        },
+      });
+    } catch {
+      setIsSubmitting(false);
+    }
+  };
+
+  /* ------------------------------ OTP Flow ------------------------------ */
 
   const handleSendOtp = async (email: string) => {
     setIsLoading(true);
     try {
       const response = await axios.post('/v1/user/auth/otp/send', { email });
-      
+
       if (response.status === 200) {
         toast.success('OTP sent successfully!');
-      setShowOtpField(true);
-      setOtpHint(`We sent a 6-digit code to ${email.toLowerCase()}.`);
-  
+        setOtpHint(`We sent a 6-digit code to ${email.toLowerCase()}.`);
+        setStep(2);
       } else {
         toast.error(response.data.message || 'Failed to send OTP');
       }
@@ -142,40 +135,32 @@ githubLogin(params.get('session'));
   };
 
   const handleEditEmail = () => {
-    setShowOtpField(false);
+    setStep(1);
     setValue('otp', '');
     setOtpHint('');
   };
 
-    const submitAudit=async(audit:string)=>{
+  const submitAudit = async (audit: string) => {
     setIsSubmitting(true);
-    await postAudit({
-      url:audit
-    }).then(res=>{
-      console.log(res)
-      // setTimeout(() => {
-        
-      //   router.push(`${REDIRECT_URL}/reports/${res?.data?.uuid}`);
-      // },5000)
-    }).catch(err=>{console.log(err)});
-
-  }
-
-  const url =params.get('url');
-  const subscriptionId=params.get('subscriptionId');
-  const subscriptionType=params.get('subscriptionType');
+    try {
+      await postAudit({ url: audit });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
-    if (!data.email) {
-      toast.error('Please enter your email');
+    // Step 1 → send OTP
+    if (step === 1) {
+      if (!data.email) {
+        toast.error('Please enter your email');
+        return;
+      }
+      await handleSendOtp(data.email.toLowerCase());
       return;
     }
 
-    if (!showOtpField) {
-      await handleSendOtp(data.email);
-      return;
-    }
-
+    // Step 2 → verify OTP
     if (!data.otp || data.otp.length !== 6) {
       toast.error('Please enter a valid 6-digit OTP');
       return;
@@ -184,35 +169,34 @@ githubLogin(params.get('session'));
     setIsLoading(true);
 
     try {
-      const response = await axios.post('/v1/user/auth/otp/verify', {
+      const payload: any = {
         email: data.email.toLowerCase(),
         otp: data.otp.toLowerCase(),
-        ...(subscriptionId&&subscriptionId!==undefined&&subscriptionId!==null&&{subscriptionId:subscriptionId}),
-        ...(subscriptionType&&subscriptionType!==undefined&&subscriptionType!==null&&{subscriptionType:subscriptionType}),
+      };
 
-        ...(url&&url!==undefined&&url!==null&&{url:url}),
-      },{
-        withCredentials:true
+      if (subscriptionId) payload.subscriptionId = subscriptionId;
+      if (subscriptionType) payload.subscriptionType = subscriptionType;
+      if (url) payload.url = url;
+
+      const response = await axios.post('/v1/user/auth/otp/verify', payload, {
+        withCredentials: true,
       });
 
       if (response.status === 200) {
         toast.success('Login successful!');
-        // if (jobId !== '') {
-        //   router.push(`/report/${jobId}`);
-        // } else {
-          console.log(params.get('url'),params.get('url')!==undefined,params.get('url')!==null)
-      if(params.get('url')&&params.get('url')!==undefined&&params.get('url')!==null){
-        setLoadingMessage("Starting Audit");
-        setIsSubmitting(true);
-        setTimeout(() => {
-          router.push(`${REDIRECT_URL}/reports/${response?.data?.submitUrl?.uuid}`);
-          
-        },2000)
-    }else{
-      // _window.location=REDIRECT_URL;
-      router.push(`${REDIRECT_URL}`);
-    }
-        // }
+
+        const hasUrl = !!params.get('url');
+        const submitUuid = response.data?.submitUrl?.uuid;
+
+        if (hasUrl && submitUuid) {
+          setLoadingMessage('Starting Audit');
+          setIsSubmitting(true);
+          setTimeout(() => {
+            router.push(`${REDIRECT_URL}/reports/${submitUuid}`);
+          }, 1500);
+        } else {
+          router.push(`${REDIRECT_URL}`);
+        }
       } else {
         toast.error(response.data.message || 'Login failed');
       }
@@ -227,194 +211,238 @@ githubLogin(params.get('session'));
     }
   };
 
- if(isSubmitting){
-  return (
-    <div className="flex justify-center items-center h-64">
-      <Loader message={loadingMessage} isLoading={isSubmitting} />
-    </div>
-  );
-}
+  /* -------------------------- Submitting Loader -------------------------- */
+
+  if (isSubmitting) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center rounded-3xl bg-white shadow-sm">
+        <Loader message={loadingMessage} isLoading={isSubmitting} />
+      </div>
+    );
+  }
+
+  /* --------------------------------- UI --------------------------------- */
 
   return (
-    <motion.div 
-      className="w-full max-w-sm h-full p-6 relative top-[50%] m-auto mx-auto dark:bg-gray-800"
-      variants={staggerContainer()}
-      initial="hidden"
-      animate="show"
+    <motion.div
+      className="w-full rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-sm backdrop-blur sm:p-6 lg:p-7"
+      initial={{ opacity: 0, y: 10, scale: 0.99 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.25 }}
     >
-      <motion.form 
-        onSubmit={handleSubmit(onSubmit)} 
-        className="mt-6"
-        variants={fadeIn('up', 'tween', 0.2, 1)}
-      >
-        <motion.div 
-          variants={fadeIn('up', 'tween', 0.4, 1)}
-          className="mt-4"
-        >
-          <div className="rounded-2xl border border-slate-200/70 bg-white/50 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/60">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-                  Step 1
-                </p>
-                <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                  Send verification code
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  We&apos;ll email a magic code to{' '}
-                  <span className="font-medium text-slate-700 dark:text-slate-200">
-                    {emailValue || 'your inbox'}
-                  </span>
-                  .
-                </p>
-              </div>
-              <span className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-semibold ${showOtpField ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-200' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
-                {showOtpField ? 'Code sent' : 'Required'}
-              </span>
-            </div>
-            <div className="relative mt-4 flex items-center rounded-xl border border-slate-200 bg-white/80 px-2 py-1 focus-within:ring-2 focus-within:ring-emerald-300 dark:border-slate-600 dark:bg-slate-900">
-              <Mail className="ml-2 text-slate-400" />
-              <input
-                type="email"
-                id="email"
-                {...register("email", { required: true })}
-                placeholder="Enter your work email"
-                className="w-full bg-transparent px-3 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-white"
-                disabled={showOtpField || isLoading}
-              />
-            </div>
-          </div>
-        </motion.div>
-        {errors.email && (
-          <motion.span 
-            className="text-red-500 text-xs"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            Email is required
-          </motion.span>
-        )}
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
+          Login to Scanerio
+        </h2>
+        <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+          Use your work email to receive a one-time magic code, or continue with Google/GitHub.
+        </p>
+      </div>
 
-        {showOtpField && (
-          <motion.div
-            className="mt-4"
-            initial="hidden"
-            animate="show"
+      {/* Step indicator */}
+      <div className="mb-4 flex items-center justify-center gap-3 text-[11px] text-slate-500 sm:justify-start">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
+              step === 1 ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'
+            }`}
           >
-            <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/60">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-                    Step 2
-                  </p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                    Verify the code
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Enter the 6-digit code sent to your email to continue.
-                  </p>
-                  {otpHint && (
-                    <p className="mt-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
-                      {otpHint}
-                    </p>
+            1
+          </span>
+          <span className={`${step === 1 ? 'text-slate-900' : ''}`}>Email</span>
+        </div>
+        <div className="h-[1px] w-9 bg-slate-200" />
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
+              step === 2 ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'
+            }`}
+          >
+            2
+          </span>
+          <span className={`${step === 2 ? 'text-slate-900' : ''}`}>Verify</span>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+        {/* Step content (only one visible) */}
+        <div className="relative mb-4">
+          <AnimatePresence mode="wait">
+            {/* STEP 1: EMAIL */}
+            {step === 1 && (
+              <motion.div
+                key="step-email"
+                variants={stepCardVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
+              >
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                  Step 1 · Work email
+                </p>
+                <p className="mt-1 text-sm font-medium text-slate-900">
+                  We&apos;ll send a one-time code to your email.
+                </p>
+
+                <div className="mt-4">
+                  <label
+                    htmlFor="email"
+                    className="mb-1 block text-xs font-medium text-slate-700"
+                  >
+                    Work email
+                  </label>
+                  <div className="relative flex items-center rounded-xl border border-slate-200 bg-white px-2 py-1 focus-within:ring-2 focus-within:ring-emerald-400">
+                    <Mail className="ml-2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="email"
+                      id="email"
+                      {...register('email', { required: true })}
+                      placeholder="you@company.com"
+                      className="w-full bg-transparent px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {errors.email && (
+                    <motion.span
+                      className="mt-1 block text-[11px] text-red-500"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      Email is required
+                    </motion.span>
                   )}
                 </div>
-                <span className="inline-flex h-7 items-center rounded-full bg-blue-50 px-3 text-xs font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-200">
-                  Secure login
-                </span>
-              </div>
-
-              <div className="mt-4">
-                <InputOTP 
-                  maxLength={6} 
-                  {...register('otp', { required: true, minLength: 6 })}
-                  onChange={(value) => setValue('otp', value)}
-                  disabled={isLoading}
-                  className='border-none'
-                >
-                  <InputOTPGroup className='gap-3 *:data-[slot=input-otp-slot]:rounded-2xl *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:border-slate-200 *:data-[slot=input-otp-slot]:bg-white/80 *:data-[slot=input-otp-slot]:text-lg *:data-[slot=input-otp-slot]:font-semibold dark:*:data-[slot=input-otp-slot]:border-slate-600 dark:*:data-[slot=input-otp-slot]:bg-slate-900/70'>
-                    {[...Array(6)].map((_, index) => (
-                      <InputOTPSlot key={index} index={index} className='h-12 w-12 text-center text-slate-900 dark:text-white' />
-                    ))}
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-
-              {errors.otp && (
-                <motion.span 
-                  className="text-red-500 text-xs"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  Please enter a valid 6-digit OTP
-                </motion.span>
-              )}
-
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={isLoading}
-                  className="rounded-full border border-slate-200 px-4 py-1 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-500"
-                >
-                  Resend code
-                </button>
-                <span className="hidden text-slate-300 sm:inline">•</span>
-                <button
-                  type="button"
-                  onClick={handleEditEmail}
-                  className="font-semibold text-slate-600 underline-offset-4 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-                >
-                  Change email
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        <motion.div 
-          className="mt-6"
-          variants={fadeIn('up', 'tween', 0.8, 1)}
-        >
-          <motion.button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-[#058296] px-6 py-2.5 text-sm flex items-center justify-center font-medium tracking-wide text-white capitalize transition-colors duration-300 transform rounded-lg hover:bg-green-700 focus:outline-none focus:ring focus:ring-gray-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={!isLoading ? { scale: 1.02 } : {}}
-            whileTap={!isLoading ? { scale: 0.98 } : {}}
-          >
-            {isLoading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : showOtpField ? (
-                'Verify OTP'
-            ) : (
-              'Send OTP'
+              </motion.div>
             )}
-            {!isLoading&& <SendHorizonal className="ml-2 h-5 w-5" />}
-           
-          </motion.button>
 
-        </motion.div>
-                <motion.div
-                variants={fadeIn('up', 'tween', 0.8, 1)}
-                className="flex items-center justify-between mt-4">
-            <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
+            {/* STEP 2: OTP */}
+            {step === 2 && (
+              <motion.div
+                key="step-otp"
+                variants={stepCardVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
+              >
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                  Step 2 · Verify code
+                </p>
+                <p className="mt-1 text-sm font-medium text-slate-900">
+                  Enter the 6-digit code from your email.
+                </p>
+                {otpHint && (
+                  <p className="mt-1 text-[11px] font-medium text-emerald-600">
+                    {otpHint}
+                  </p>
+                )}
 
-            <p className="text-xs text-gray-500 uppercase dark:text-gray-400">or Continue with</p>
+                <div className="mt-4 flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    {...register('otp', { required: true, minLength: 6 })}
+                    onChange={(value) => setValue('otp', value)}
+                    disabled={isLoading}
+                    className="border-none"
+                  >
+                    <InputOTPGroup className="gap-2 sm:gap-3 *:data-[slot=input-otp-slot]:rounded-2xl *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:border-slate-200 *:data-[slot=input-otp-slot]:bg-white *:data-[slot=input-otp-slot]:text-lg *:data-[slot=input-otp-slot]:font-semibold">
+                      {[...Array(6)].map((_, index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="h-10 w-10 text-center text-slate-900 sm:h-11 sm:w-11"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
 
-            <span className="w-1/5 border-b dark:border-gray-600 md:w-1/4"></span>
-        </motion.div>
-        <motion.div
-        variants={fadeIn('up', 'tween', 0.8, 1)}
-        className="grid grid-cols-1 mt-5 gap-5 dark:bg-gray-800">
-   <GoogleSignInBtn title='Google'/>
-    <GithubSignIn title='Github'/>
-</motion.div>
-      </motion.form>
+                {errors.otp && (
+                  <motion.span
+                    className="mt-1 block text-[11px] text-red-500"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    Please enter a valid 6-digit OTP
+                  </motion.span>
+                )}
+
+                <div className="mt-4 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={isLoading}
+                    className="rounded-full border border-slate-200 px-3 py-1 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Resend code
+                  </button>
+                  <span className="hidden text-slate-300 sm:inline">•</span>
+                  <button
+                    type="button"
+                    onClick={handleEditEmail}
+                    className="font-semibold text-slate-600 underline-offset-4 transition hover:text-slate-900"
+                  >
+                    Change email
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Primary CTA */}
+        <motion.button
+          type="submit"
+          disabled={isLoading}
+          className="flex w-full items-center justify-center rounded-2xl bg-emerald-500 px-6 py-2.5 text-sm font-medium tracking-wide text-white shadow-sm transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60"
+          whileHover={!isLoading ? { scale: 1.02 } : {}}
+          whileTap={!isLoading ? { scale: 0.98 } : {}}
+        >
+          {isLoading ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : step === 1 ? (
+            'Send magic code'
+          ) : (
+            'Verify & continue'
+          )}
+          {!isLoading && <SendHorizonal className="ml-2 h-5 w-5" />}
+        </motion.button>
+
+        {/* Divider */}
+        <div className="mt-5 flex items-center justify-between text-[11px] text-slate-400">
+          <span className="w-1/5 border-b border-slate-200" />
+          <p className="mx-2">or continue with</p>
+          <span className="w-1/5 border-b border-slate-200" />
+        </div>
+
+        {/* Social logins */}
+        <div className="mt-4 grid grid-cols-1 gap-3">
+          <GoogleSignInBtn title="Google" />
+          <GithubSignIn title="Github" />
+        </div>
+
+        {/* Tiny footer */}
+        <p className="mt-4 text-[10px] leading-relaxed text-slate-400">
+          By continuing, you agree to our{' '}
+          <span className="underline underline-offset-2">Terms</span> and{' '}
+          <span className="underline underline-offset-2">Privacy Policy</span>.
+        </p>
+      </form>
     </motion.div>
-  ); 
+  );
 };
 
-export default LoginForm;
+export default function LoginForm() {
+  // Suspense wrapper in case you want future async pieces
+  return (
+    <Suspense fallback={<div className="py-10 text-center text-sm text-slate-500">Loading…</div>}>
+      <InnerLoginForm />
+    </Suspense>
+  );
+}
