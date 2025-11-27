@@ -1,84 +1,83 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import React, { useEffect } from 'react'
-// import LoginForm from './LoginForm'
-import {motion} from 'framer-motion';
-import { fadeIn, staggerContainer } from '@/utils/motion';
+import Link from 'next/link';
+import React from 'react';
+import { motion } from 'framer-motion';
 import LoginForm from './login-form';
-const Login = () => {    
 
+const Login = () => {
   return (
-    <div className='overflow-hidden'>
-    {/* <div className='main'>
-        <div className='gradient'/>
-      </div> */}
-     <div className="bg-transparent relative z-40 dark:bg-gray-900">
-      <div className="flex justify-center items-center h-screen rounded-xl">
-        <div
-          className="hidden bg-cover lg:block lg:w-3/5 rounded-xl h-full"
-          
-        >
-           <div className="flex items-end  h-fit px-10 py-10 bg-gray-900/10">
-            <div>
-              <Link href={'/'} className=" font-bold text- text-white sm:text-3xl">
-              <div>
-              {/* <Image src="/images/scanerio_transparent.png" alt="logo" width={200} height={200} /> */}
-              <h1 className='pb-2 text-sm text-black'>Scanerio</h1>
-              </div>
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col lg:flex-row lg:items-stretch lg:py-8">
+        {/* LEFT: Branding + Video */}
+        <div className="relative flex w-full items-stretch justify-center px-4 pt-6 pb-4 sm:px-6 lg:w-1/2 lg:px-8 lg:pt-8">
+          <div className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl">
+            {/* Gradient overlay */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/40 to-slate-900/90" />
+
+            {/* Video */}
+            <video
+              src="/scan.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="h-full w-full object-cover"
+            />
+
+            {/* Top brand */}
+            <div className="pointer-events-none absolute left-0 right-0 top-0 flex items-center justify-between px-6 py-5 sm:px-8">
+              <Link
+                href="/"
+                className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-md hover:bg-white/15"
+              >
+                <span className="h-6 w-6 rounded-full bg-emerald-400/90 text-[11px] font-extrabold text-slate-900 flex items-center justify-center">
+                  S
+                </span>
+                <span className="text-sm tracking-tight">Scanerio</span>
               </Link>
-              <p className=" text-2xl font-bold mt-1 text-black ">
-                {/* Professional Website Audits In Minutes. */}
-                Get comprehensive performance reports with actionable insights to boost your website{'`'}s speed, security and user experience.
-              </p>
+              <span className="hidden text-[11px] font-medium text-slate-200/90 sm:inline-flex">
+                Web Audit · Performance · Accessibility
+              </span>
+            </div>
+
+            {/* Bottom content */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 px-6 pb-6 pt-6 sm:px-8 sm:pb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-300">
+                  Website Intelligence
+                </p>
+
+                <div className="mt-4 flex flex-wrap gap-2 text-[11px] sm:text-xs">
+                  <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-200">
+                    Lighthouse-powered audits
+                  </span>
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-slate-100">
+                    Security &amp; SEO checks
+                  </span>
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-slate-100">
+                    Shareable reports
+                  </span>
+                </div>
+              </motion.div>
             </div>
           </div>
-          <video src={'/scan.mp4'} autoPlay loop muted className='h-[80%] w-full object-cover
-          '>
-            {/* <source src="/scan.mp4" type="video/mp4" /> */}
-          </video>
-         
         </div>
 
-        <motion.div variants={staggerContainer()} initial="hidden"
-      animate="show" className="flex items-center w-full max-w-md px-6 mx-auto lg:w-2/6">
-          <motion.div  className="flex-1">
-            <div className="text-center">
-              <motion.div
-              variants={fadeIn('up', 'tween', 0.1, 1)}
-              className="flex justify-center mx-auto">
-                <Link href='/' className="text-2xl cursor-pointer font-bold sm:text-3xl">
-                <h1>
+        {/* RIGHT: Login Card */}
+        <div className="flex w-full items-center justify-center px-4 py-6 sm:px-6 lg:w-1/2 lg:px-8 lg:py-8">
+          <div className="w-full max-w-md">
 
-                Scanerio
-                </h1>
-                
-                </Link>
-                
-              </motion.div>
-
-              <motion.p variants={fadeIn('up', 'tween', 0.2, 1)} className="mt-3 text-gray-500 dark:text-gray-300">Login to access your account</motion.p>
-            </div>
-              {/* <> */}
-              
-            <div className="mt-0">
-                <LoginForm />
-
-              {/* <p className="mt-6 text-sm text-center text-gray-400">
-                Already have an account?{' '}
-                <a href="#" className="text-green-500 focus:outline-none focus:underline hover:underline">
-                  Log In
-                </a>
-                .
-              </p> */}
-            </div>
-              {/* </> */}
-          </motion.div>
-        </motion.div>
+            <LoginForm />
+          </div>
+        </div>
       </div>
     </div>
-    </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
