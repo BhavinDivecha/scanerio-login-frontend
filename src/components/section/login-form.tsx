@@ -79,15 +79,15 @@ const InnerLoginForm: React.FC = () => {
           const data = (res as any)?.data;
           const hasUrl = !!params.get('url');
 
-          // if (hasUrl && data?.submitUrl?.uuid) {
-          //   setLoadingMessage('Starting Audit');
-          //   setIsSubmitting(true);
-          //   setTimeout(() => {
-          //     router.push(`${REDIRECT_URL}/reports/${data.submitUrl.uuid}`);
-          //   }, 1500);
-          // } else {
-          //   router.push(`${REDIRECT_URL}`);
-          // }
+          if (hasUrl && data?.submitUrl?.uuid) {
+            setLoadingMessage('Starting Audit');
+            setIsSubmitting(true);
+            setTimeout(() => {
+              router.push(`${REDIRECT_URL}/reports/${data.submitUrl.uuid}`);
+            }, 1500);
+          } else {
+            router.push(`${REDIRECT_URL}`);
+          }
 
           return 'Login successful!';
         },
@@ -191,11 +191,11 @@ const InnerLoginForm: React.FC = () => {
         if (hasUrl && submitUuid) {
           setLoadingMessage('Starting Audit');
           setIsSubmitting(true);
-          // setTimeout(() => {
-          //   router.push(`${REDIRECT_URL}/reports/${submitUuid}`);
-          // }, 1500);
+          setTimeout(() => {
+            router.push(`${REDIRECT_URL}/reports/${submitUuid}`);
+          }, 1500);
         } else {
-          // router.push(`${REDIRECT_URL}`);
+          router.push(`${REDIRECT_URL}`);
         }
       } else {
         toast.error(response.data.message || 'Login failed');
