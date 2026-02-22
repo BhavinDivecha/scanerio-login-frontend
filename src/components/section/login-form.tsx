@@ -79,15 +79,15 @@ const InnerLoginForm: React.FC = () => {
           const data = (res as any)?.data;
           const hasUrl = !!params.get('url');
 
-          if (hasUrl && data?.submitUrl?.uuid) {
-            setLoadingMessage('Starting Audit');
-            setIsSubmitting(true);
-            setTimeout(() => {
-              router.push(`${REDIRECT_URL}/reports/${data.submitUrl.uuid}`);
-            }, 1500);
-          } else {
-            router.push(`${REDIRECT_URL}`);
-          }
+          // if (hasUrl && data?.submitUrl?.uuid) {
+          //   setLoadingMessage('Starting Audit');
+          //   setIsSubmitting(true);
+          //   setTimeout(() => {
+          //     router.push(`${REDIRECT_URL}/reports/${data.submitUrl.uuid}`);
+          //   }, 1500);
+          // } else {
+          //   router.push(`${REDIRECT_URL}`);
+          // }
 
           return 'Login successful!';
         },
@@ -106,7 +106,7 @@ const InnerLoginForm: React.FC = () => {
   const handleSendOtp = async (email: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/v1/user/auth/otp/send', { email });
+      const response = await axios.post('https://api.login.scanerio.com/api/auth/otp/send', { email });
 
       if (response.status === 200) {
         toast.success('OTP sent successfully!');
@@ -178,7 +178,7 @@ const InnerLoginForm: React.FC = () => {
       if (subscriptionType) payload.subscriptionType = subscriptionType;
       if (url) payload.url = url;
 
-      const response = await axios.post('/v1/user/auth/otp/verify', payload, {
+      const response = await axios.post('https://api.login.scanerio.com/api/auth/otp/verify', payload, {
         withCredentials: true,
       });
 
@@ -191,11 +191,11 @@ const InnerLoginForm: React.FC = () => {
         if (hasUrl && submitUuid) {
           setLoadingMessage('Starting Audit');
           setIsSubmitting(true);
-          setTimeout(() => {
-            router.push(`${REDIRECT_URL}/reports/${submitUuid}`);
-          }, 1500);
+          // setTimeout(() => {
+          //   router.push(`${REDIRECT_URL}/reports/${submitUuid}`);
+          // }, 1500);
         } else {
-          router.push(`${REDIRECT_URL}`);
+          // router.push(`${REDIRECT_URL}`);
         }
       } else {
         toast.error(response.data.message || 'Login failed');
