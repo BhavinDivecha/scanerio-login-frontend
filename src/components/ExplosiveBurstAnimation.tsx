@@ -8,6 +8,7 @@ const ExplosiveBurstAnimation: React.FC = () => {
   const textElRef = useRef<HTMLSpanElement | null>(null);
   const tickRef = useRef<HTMLSpanElement | null>(null);
   const [ready, setReady] = useState(false);
+  const letters = ["S", "c", "a", "n", "e", "r", "i"];
 
   // Burst looper for the tick "O"
   const loopBurst = (el: HTMLElement, interval = 2300): NodeJS.Timeout => {
@@ -56,16 +57,26 @@ const ExplosiveBurstAnimation: React.FC = () => {
   align-items: center !important; /* keep the icon centered with the text line */
 }
         .wrap { display: grid; gap: 24px; justify-items: center; max-width: 980px; }
-        .scenario-line { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; justify-content: center; }
+        .scenario-line { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
         .logo-left .wrap { justify-items: start; }
         .logo-left .scenario-line { justify-content: flex-start; }
         .scenario-word {
   font-weight: 700;
   letter-spacing: 0.02em;
-  line-height: 1.05;
+  line-height: 1;
   color: #fff;
-  display: flex;
+  display: inline-flex;
+  align-items: center;
 }
+        .hidden-on-load {
+          opacity: 0;
+          visibility: hidden;
+        }
+        .run .hidden-on-load {
+          opacity: 1;
+          visibility: visible;
+          transition: opacity 120ms ease-out;
+        }
         /* ---- Pause/Run gate to avoid race on reload ---- */
         .paused .typewriter .text,
         .paused .scenario-word .o-tick,
@@ -88,42 +99,37 @@ const ExplosiveBurstAnimation: React.FC = () => {
 
         /* ---- Typewriter ---- */
         .typewriter {
-          --chars: 8;           /* 7 letters + tick as the 8th "char" */
-          --typing-dur: 0.6s;   /* total typing duration */
-          display: inline-block;
+          --letters: 7;
+          --typing-dur: 1.1s; /* total typing duration */
+          display: inline-flex;
+          align-items: center;
           vertical-align: baseline;
         }
         .typewriter .text {
-          display: flex;
-          align-items: center;
-          justify-items:center;
-          gap: 7px;
-          overflow: visible;
+          display: inline-block;
           white-space: nowrap;
-          
+          overflow: hidden;
           width: 0ch;
-          border-right: 0; /* caret removed */
-          padding-right: 2px;
-          animation:
-            typing var(--typing-dur) steps(var(--chars)) forwards;
+          padding-right: 0.06em;
+          animation: typing var(--typing-dur) steps(var(--letters)) forwards;
         }
         .typewriter.done .text {
           border-right-color: transparent;
           animation: none;
-          width: 130px;
+          width: calc(var(--letters) * 1ch);
         }
-        @keyframes typing { to { width: calc(var(--chars) * 1ch); } }
+        @keyframes typing { to { width: calc(var(--letters) * 1ch); } }
         @keyframes caret-blink { 50% { border-right-color: transparent; } }
 
         /* ---- Tick "O" (inside typed span, becomes visible on last step) ---- */
        
        
         .scenario-word .o-tick {
-          bottom: 0.2rem;
           --size: 1.05em;
           --burst: #22c55e;
           --ray-gap: 32%;
           --ray-spread: 28deg;
+          --tick-delay: calc(var(--typing-dur) + 0.05s);
 
           /* keyframe durations */
           --burst-dur: .6s;
@@ -138,12 +144,15 @@ const ExplosiveBurstAnimation: React.FC = () => {
           place-items: center;
           color: #fff;
           isolation: isolate;
-          vertical-align: -0.05em;
-          margin-left: -0.35em;
-           vertical-align: -0.05em;
-           bottom: 0.2rem;
+          vertical-align: middle;
+          margin-left: -0.1em;
+          opacity: 0;
+          transform: translateY(4px) scale(0.96);
+          animation: tick-in 0.25s ease-out forwards;
+          animation-delay: var(--tick-delay);
         }
 
+        @keyframes tick-in { to { opacity: 1; transform: translateY(0) scale(1); } }
 
         
         .icon { transition: transform .2s; }
@@ -201,32 +210,40 @@ const ExplosiveBurstAnimation: React.FC = () => {
           <div className="scenario-line">
             <div className="scenario-word">
               {/* Typewritten: 7 letters + tick as the 8th "character" */}
-              <span className="typewriter" ref={typeWrapRef}>
-                <span className="text mr-2" ref={textElRef}>
-                  Scaneri
-                  {/* Tick is inside the typed span; appears on last step */}
-                  <span className="o-tick mt-2" ref={tickRef} aria-hidden="true">
-                    <span className="bits" aria-hidden="true"></span>
-                    <svg className="icon"  viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" >
-                      <circle
-                        cx="12" cy="12" r="9"
-                        fill="#22c55e"
-                        stroke="currentColor"
-                        opacity=".75"
-                        strokeWidth="2"
-                      />
-                      <path
-                        className="tickpath"
-                        pathLength="1"
-                        d="M7 12.5l3.2 3.2L17.5 8.5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
+              <span className="typewriter hidden-on-load" ref={typeWrapRef}>
+                <span className="text" ref={textElRef}>
+                  {letters.join("")}
+                </span>
+                {/* Tick appears after typing completes */}
+                <span className="o-tick" ref={tickRef} aria-hidden="true">
+                  <span className="bits" aria-hidden="true"></span>
+                  <svg
+                    className="icon"
+                    viewBox="0 0 24 24"
+                    width="1em"
+                    height="1em"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="9"
+                      fill="#22c55e"
+                      stroke="currentColor"
+                      opacity=".75"
+                      strokeWidth="2"
+                    />
+                    <path
+                      className="tickpath"
+                      pathLength="1"
+                      d="M7 12.5l3.2 3.2L17.5 8.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </span>
               </span>
             </div>
