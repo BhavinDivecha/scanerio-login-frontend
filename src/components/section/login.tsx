@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import LoginForm from "./login-form";
+import ExplosiveBurstAnimation from "@/components/ExplosiveBurstAnimation";
 
 const Login = () => {
   return (
@@ -25,10 +26,10 @@ const Login = () => {
             />
 
             {/* Top brand */}
-            <div className="pointer-events-none absolute left-0 right-0 top-0 flex items-center justify-between px-6 py-5 sm:px-8">
+            <div className="pointer-events-none absolute left-0 right-0 top-0 flex items-center justify-start px-6 py-5 sm:px-8">
               <motion.a
                 href="https://scanerio.com/"
-                className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-md hover:bg-white/15"
+                className="pointer-events-auto inline-flex items-center gap-2 text-sm font-semibold sm:text-base lg:text-lg"
                 animate={{ y: [0, -2, 0] }}
                 transition={{
                   duration: 2.6,
@@ -38,12 +39,11 @@ const Login = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className="h-6 w-6 rounded-full bg-emerald-400/90 text-[11px] font-extrabold text-slate-900 flex items-center justify-center">
-                  S
-                </span>
-                <span className="text-sm tracking-tight">Scanerio</span>
+                <div className="origin-left scale-[1.15] sm:scale-[1.25] lg:scale-[1.35]">
+                  <ExplosiveBurstAnimation />
+                </div>
               </motion.a>
-              <span className="hidden text-[11px] font-medium text-slate-200/90 sm:inline-flex">
+              <span className="ml-auto hidden text-[11px] font-medium text-slate-200/90 sm:inline-flex">
                 Web Audit · Performance · Accessibility
               </span>
             </div>
