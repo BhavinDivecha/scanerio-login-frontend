@@ -110,8 +110,11 @@ const ExplosiveBurstAnimation: React.FC = () => {
           white-space: nowrap;
           overflow: hidden;
           width: 0ch;
+          border-right: 0.08em solid #e2e8f0;
           padding-right: 0.06em;
-          animation: typing var(--typing-dur) steps(var(--letters)) forwards;
+          animation:
+            typing var(--typing-dur) steps(var(--letters)) forwards,
+            caret-blink 0.9s steps(1) infinite;
         }
         .typewriter.done .text {
           border-right-color: transparent;
