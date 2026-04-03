@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "Scanerio",
   metadataBase: new URL("https://scanerio.codexlab.in"),
   description: "Scanerio is a website auditing tool",
+  icons: {
+    icon: "/favicon.ico",
+  },
   openGraph: {
     images: "/images/scanerio_transparent.png",
   },
